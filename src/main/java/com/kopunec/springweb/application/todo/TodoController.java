@@ -1,7 +1,9 @@
 package com.kopunec.springweb.application.todo;
 
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -14,6 +16,7 @@ import java.time.LocalDate;
 @Controller
 @AllArgsConstructor
 @Slf4j
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class TodoController {
 
     TodoRepository todoRepository;
@@ -72,6 +75,7 @@ public class TodoController {
         }
 
         todo.setUserName(getLoggedInUsername());
+        todo.setTargetDate(LocalDate.now().plusYears(1));
         todoRepository.save(todo);
         return "redirect:/todos";
     }
