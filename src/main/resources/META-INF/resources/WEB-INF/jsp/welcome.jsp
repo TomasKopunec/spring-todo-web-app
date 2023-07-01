@@ -5,6 +5,8 @@
 
     <body>
         <h1>Spring Boot Application</h1>
-        <div>Username: ${username}</div>
+        <div>Username: ${name}</div>
+
+        <a href="todos">Manage your todos</a>
     </body>
 </html>

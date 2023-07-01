@@ -11,7 +11,7 @@
             <thead>
                 <tr>
                     <th>Id</th>
-                    <th>Username</th>
+<%--                    <th>Username</th>--%>
                     <th>Description</th>
                     <th>Target Date</th>
                     <th>Is Done?</th>
@@ -22,10 +22,12 @@
                 <c:forEach items="${todos}" var="todo">
                     <tr>
                         <td>${todo.id}</td>
-                        <td>${todo.userName}</td>
+<%--                        <td>${todo.userName}</td>--%>
                         <td>${todo.description}</td>
                         <td>${todo.targetDate}</td>
                         <td>${todo.done}</td>
+                        <td><a href="edit-todo?id=${todo.id}">  <button>Edit</button></a></td>
+                        <td><a href="delete-todo?id=${todo.id}"><button>Delete</button></a></td>
                     </tr>
                 </c:forEach>
             </tbody>

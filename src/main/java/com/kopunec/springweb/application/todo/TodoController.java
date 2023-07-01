@@ -1,44 +1,82 @@
 package com.kopunec.springweb.application.todo;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
-import static lombok.AccessLevel.PRIVATE;
-
 @Controller
 @AllArgsConstructor
-@FieldDefaults(level = PRIVATE, makeFinal = true)
-@SessionAttributes("name")
+@Slf4j
 public class TodoController {
 
-    private final TodoService todoService;
+    TodoRepository todoRepository;
 
     @GetMapping("todos")
     public String showTodos(ModelMap map) {
-        map.addAttribute("todos", todoService.findByUsername("in28minutes"));
+        map.addAttribute("todos", todoRepository.findByUserName(getLoggedInUsername()));
         return "todos";
     }
 
     @GetMapping("add-todo")
-    public String addTodo() {
+    public String addTodo(ModelMap map) {
+        map.addAttribute("todo", new Todo(
+                0,
+                getLoggedInUsername(),
+                "",
+                LocalDate.now().plusYears(1),
+                false
+        ));
         return "todo";
     }
 
     @PostMapping("add-todo")
-    public String addTodoPost(@RequestParam String description, ModelMap map) {
-        todoService.addTodo(
-                (String) map.get("name"),
-                description,
-                LocalDate.now().plusYears(2)
-        );
+    public String addTodoPost(ModelMap map, @Valid Todo todo, BindingResult result) {
+        if(result.hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            result.getAllErrors().forEach(e -> sb.append(e.getDefaultMessage()).append("\n"));
+            map.addAttribute("error", sb.toString());
+            return "todo";
+        }
+
+        todo.setUserName(getLoggedInUsername());
+        todoRepository.save(todo);
         return "redirect:/todos";
+    }
+
+    @GetMapping("delete-todo")
+    public String deleteTodo(@RequestParam Integer id) {
+        todoRepository.deleteById(id);
+        return "redirect:/todos";
+    }
+
+    @GetMapping("edit-todo")
+    public String editTodo(ModelMap map, @RequestParam Integer id) {
+        map.addAttribute("todo", todoRepository.findById(id).get());
+        return "editTodo";
+    }
+
+    @PostMapping("edit-todo")
+    public String putTodo(ModelMap map, @Valid Todo todo, BindingResult result) {
+        if(result.hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            result.getAllErrors().forEach(e -> sb.append(e.getDefaultMessage()).append("\n"));
+            map.addAttribute("error", sb.toString());
+            return "todo";
+        }
+
+        todo.setUserName(getLoggedInUsername());
+        todoRepository.save(todo);
+        return "redirect:/todos";
+    }
+
+    private String getLoggedInUsername() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }
